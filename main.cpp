@@ -7,6 +7,7 @@
  * coached should be using the same version of the site as well.
  *
  * For the sake of simplicity, I maintain a couple of assumptions about the problem:
+ *
  * 1) If someone is coaching someone else who is using a higher version of the program,
  *    then the coach should be upgraded to the better version.
  *
@@ -25,6 +26,10 @@
 #include <iostream>
 using namespace std;
 
+#include "node.hpp"
+#include "graph.hpp"
+#include "student.hpp"
+
 extern "C" {
 #include "sqlite3.h"
 }
@@ -35,7 +40,7 @@ extern "C" {
 int main(int argc, char** argv) {
 
     char *zErrMsg = 0;
-    string testFilePath = DEFAULT_TESTFILE_NAME;
+    string testFilePath = "";
     string databasePath = DEFAULT_DATABASE_NAME;
 
 
@@ -131,9 +136,40 @@ int main(int argc, char** argv) {
     }
 
 
+    // Processing
+    // ==========================================================
+    // At this point, we begin instantiating the graph necessary to find all strongly connected
+    // component within the relationship defined by the database given. We pull in all relationships
+    // from the local database specified, build up the necessary graph, and begin a total or local
+    // infection.
+    Graph<Student> *relations = new Graph<Student>();
+
+    // Fills out the graph with the students in the database
+    if(sqlite3_exec(database, STUDENT_TABLE_SQL, Student::populateGraph, (void*)relations, &zErrMsg) != SQLITE_OK) {
+        cerr << "Could not execute SQL statement: " << STUDENT_TABLE_SQL << endl;
+        cerr << zErrMsg << endl;
+        sqlite3_free(zErrMsg);
+    }
+
+    // Establishes relationships between all students; this will allow for the creation of strongly
+    // connected components.
+    if(sqlite3_exec(database, STUDENT_JOIN_TABLE_SQL, Student::joinGraph, (void*)relations, &zErrMsg) != SQLITE_OK) {
+        cerr << "Could not execute SQL statement: " << STUDENT_JOIN_TABLE_SQL << endl;
+        cerr << zErrMsg << endl;
+        sqlite3_free(zErrMsg);
+    }
+
+    // The following is the graph of the original but with all strongly connected components
+    // representing a node (with the number of nodes in each "meta" node). We can use this graph
+    // to determine a total and limited infection accurately and relatively quickly (at least
+    // in the limited case).
+    Graph<MetaNode*> connectedRelations = relations->getStrongComponents();
+
+
     // Cleanup
     // ==========================================================
 
+    delete relations;
     sqlite3_close(database);
 
     return 0;
