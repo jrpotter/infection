@@ -14,13 +14,16 @@
  *
  * 3) Khan Academy uses SQLite3 (which I incorporated since I am unsure what database
  *    environment they actually use). This should be simple to modify if the time
- *    comes to a more sophisticated environment, and provides a more realistic implementation.
+ *    comes for a more sophisticated environment, and provides a more realistic implementation.
  *
  * Author: Joshua Potter
  * Date: February 14, 2015
 */
 #include <cstring>
+#include <sstream>
+#include <fstream>
 #include <iostream>
+using namespace std;
 
 extern "C" {
 #include "sqlite3.h"
@@ -31,8 +34,13 @@ extern "C" {
 
 int main(int argc, char** argv) {
 
-    std::string testFilePath = DEFAULT_TESTFILE_NAME;
-    std::string databasePath = DEFAULT_DATABASE_NAME;
+    char *zErrMsg = 0;
+    string testFilePath = DEFAULT_TESTFILE_NAME;
+    string databasePath = DEFAULT_DATABASE_NAME;
+
+
+    // Command Line Arguments
+    // ==========================================================
 
     // Before the program is run, we instantiate the database that is pulled from.
     // The name of the file to test should be passed in as a command line argument.
@@ -45,7 +53,7 @@ int main(int argc, char** argv) {
         // in conjunction with the -d flag)
         if(strcmp(argv[i], "-f") == 0) {
             if(i + 1 == argc) {
-                std::cerr << "Please specify a test file to seed database with." << std::endl;
+                cerr << "Please specify a test file to seed database with." << endl;
                 return 1;
             } else {
                 testFilePath = argv[i+1];
@@ -54,7 +62,7 @@ int main(int argc, char** argv) {
         // Specify the path of the database to pull from
         } else if(strcmp(argv[i], "-d") == 0) {
             if(i + 1 == argc) {
-                std::cerr << "Please specify the path of the database to create or pull from." << std::endl;
+                cerr << "Please specify the path of the database to create or pull from." << endl;
                 return 1;
             } else {
                 databasePath = argv[i+1];
@@ -63,36 +71,70 @@ int main(int argc, char** argv) {
         // Display help text. Do not continue anything else.
         } else if(strcmp(argv[i], "-h") == 0) {
 
-            std::cout << "Help documentation: " << std::endl;
-            std::cout << "-f {file}: Path of file to seed database with (needs to exist)" << std::endl;
-            std::cout << "-d {database}: Path of database (does not need to exist) to seed" << std::endl;
-            std::cout << "-h: Print out this help documentation";
-            std::cout << std::endl << std::endl;
+            cout << "Help documentation: " << endl;
+            cout << "-f {file}: Path of file to seed database with (needs to exist)" << endl;
+            cout << "-d {database}: Path of database (does not need to exist) to seed" << endl;
+            cout << "-h: Print out this help documentation";
+            cout << endl << endl;
 
             return 0;
 
         // Invalid argument passed. Simply redirect and exit.
         } else {
-            std::cerr << "Invalid argument. Pass in -h for help";
+            cerr << "Invalid argument. Pass in -h for help";
             return 1;
         }
     }
+
+
+    // Connections
+    // ==========================================================
 
     // Next we try and instantiate the values passed (or defaulted to), creating the necessary SQLite 
     // connection, creating the database if necessary, and seeding the data if specified
     sqlite3 *database;
     if(sqlite3_open(databasePath.c_str(), &database) != SQLITE_OK) {
-        std::cerr << "Couldn't open database: " << std::endl;
-        std::cerr << sqlite3_errmsg(database) << std::endl;
+        cerr << "Couldn't open database: " << databasePath << endl;
+        cerr << sqlite3_errmsg(database) << endl;
         return 1;
     }
 
+    // We read in the entire file at once, and immediately execute it into the specified table.
+    // This is only in the case that a file path was specified at all; if not, we assume that
+    // the table has already been initialized with the test data desired.
+    if(testFilePath.size() != 0) {
+
+        bool fileError = false;
+        ifstream testFile(testFilePath.c_str(), ifstream::in);
+
+        // Attempt to execute file contents
+        if(testFile.is_open()) {
+            stringstream buffer;
+            buffer << testFile.rdbuf();
+            if(sqlite3_exec(database, buffer.str().c_str(), 0, 0, &zErrMsg) != SQLITE_OK) {
+                cerr << "Could not write out to database: " << zErrMsg << endl;
+                sqlite3_free(zErrMsg);
+                fileError = true;
+            }
+        } else {
+            cerr << "Could not open file path: " << testFilePath << endl;
+            fileError = true;
+        }
+
+        // Cleanup. We must still close the database at this point since we could not load
+        // in the desired test data.
+        testFile.close();
+        if(fileError) {
+            sqlite3_close(database);
+            return 1;
+        }
+    }
 
 
-
+    // Cleanup
+    // ==========================================================
 
     sqlite3_close(database);
-        
 
     return 0;
 }
