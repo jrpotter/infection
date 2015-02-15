@@ -26,9 +26,7 @@
 #include <iostream>
 using namespace std;
 
-#include "node.hpp"
-#include "graph.hpp"
-#include "student.hpp"
+#include "infection.hpp"
 
 extern "C" {
 #include "sqlite3.h"
@@ -39,10 +37,16 @@ extern "C" {
 
 int main(int argc, char** argv) {
 
+    // Configuration variables
     char *zErrMsg = 0;
     string testFilePath = "";
     string databasePath = DEFAULT_DATABASE_NAME;
 
+    // Flag to determine whether conducting a total or limited infection
+    bool totalInfection = true;
+
+    // Specifies either id of student or limit desired
+    int input = -1;
 
     // Command Line Arguments
     // ==========================================================
@@ -54,9 +58,28 @@ int main(int argc, char** argv) {
     // is the first time running the program entirely).
     for(int i = 1; i < argc; i+=2) {
 
+        // Requesting a total infection
+        if(strcmp(argv[i], "-t") == 0) {
+            if(i + 1 == argc) {
+                cerr << "Please specify a user id." << endl;
+                return 1;
+            } else {
+                input = stoi(argv[i+1]);
+            }
+
+        // Requesting a limited infection
+        } else if(strcmp(argv[i], "-l") == 0) {
+            if(i + 1 == argc) {
+                cerr << "Please specify a limit." << endl;
+                return 1;
+            } else {
+                totalInfection = false;
+                input = stoi(argv[i+1]);
+            }
+
         // Specify the test file to seed the database with (this can be used
         // in conjunction with the -d flag)
-        if(strcmp(argv[i], "-f") == 0) {
+        } else if(strcmp(argv[i], "-f") == 0) {
             if(i + 1 == argc) {
                 cerr << "Please specify a test file to seed database with." << endl;
                 return 1;
@@ -142,7 +165,7 @@ int main(int argc, char** argv) {
     // component within the relationship defined by the database given. We pull in all relationships
     // from the local database specified, build up the necessary graph, and begin a total or local
     // infection.
-    Graph<Student> *relations = new Graph<Student>();
+    Graph *relations = new Graph();
 
     // Fills out the graph with the students in the database
     if(sqlite3_exec(database, STUDENT_TABLE_SQL, Student::populateGraph, (void*)relations, &zErrMsg) != SQLITE_OK) {
@@ -163,13 +186,24 @@ int main(int argc, char** argv) {
     // representing a node (with the number of nodes in each "meta" node). We can use this graph
     // to determine a total and limited infection accurately and relatively quickly (at least
     // in the limited case).
-    Graph<MetaNode*> connectedRelations = relations->getStrongComponents();
+    Graph *connectedRelations = relations->getStrongComponents();
+
+    // Conduct the infection
+    Infection infection(relations, connectedRelations);
+    if(input != -1) {
+        if(totalInfection) {
+            infection.total_infection(static_cast<Student*>(relations->nodes[input]));
+        } else {
+            infection.limit_infection(input);
+        }
+    }
 
 
     // Cleanup
     // ==========================================================
 
     delete relations;
+    delete connectedRelations;
     sqlite3_close(database);
 
     return 0;

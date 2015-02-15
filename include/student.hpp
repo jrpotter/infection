@@ -37,7 +37,7 @@ class Student : public Node
         static int joinGraph(void *data, int argc, char **argv, char **colName);
         static int populateGraph(void *data, int argc, char **argv, char **colName);
 
-    private:
+        // Again, just providing the members as is and avoiding unnecessar ygetters/setters
         string name;
         int version;
 };

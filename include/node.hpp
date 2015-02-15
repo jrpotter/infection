@@ -26,11 +26,23 @@ class Node
         // Build up adjacency list
         void addEdge(int id, Node *node);
 
-    protected:
+        // The unique id of the node in the graph
         int id;
-        int index;
-        int low_index;
+
+        // Represents the parent id of the strongly
+        // connected subtree
+        int leader;
+
+        // Used during Tarjan's algorithm
+        int index, low_index;
+
+        // The actual connections; Note I do not bother making this private
+        // since I would need to access the entire map anyways
         map<int, Node*> edges;
+
+        // A node can recursively contain other nodes. This is the vector
+        // of those subnodes
+        vector<Node*> subNodes;
 };
 
 #endif

@@ -4,7 +4,7 @@
 // ==========================================================
 
 int Student::populateGraph(void *data, int argc, char **argv, char **colName) {
-    Graph<Student*> *graph = static_cast<Graph<Student*>*>(data);
+    Graph *graph = static_cast<Graph*>(data);
     Student *student = new Student(argc, argv, colName);
     graph->addNode(student->id, student);
     return 0;
@@ -25,7 +25,7 @@ int Student::joinGraph(void *data, int argc, char **argv, char **colName) {
 
     // Establish link
     if(mentorId != 0 && menteeId != 0) {
-        Graph<Student*> *graph = static_cast<Graph<Student*>*>(data);
+        Graph *graph = static_cast<Graph*>(data);
         graph->connect(mentorId, menteeId);
     }
 
