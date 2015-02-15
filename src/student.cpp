@@ -37,13 +37,16 @@ int Student::joinGraph(void *data, int argc, char **argv, char **colName) {
 // ==========================================================
 
 Student::Student()
-        :id(0)
+        :Node(0)
         ,name("")
         ,version(0)
 {}
 
+// The following is called when constructing from the database
+// Simply loop through column names, setting members to the
+// correct column entry
 Student::Student(int argc, char **argv, char **colName)
-        :id(0)
+        :Node(0)
         ,name("")
         ,version(0)
 {
@@ -59,6 +62,38 @@ Student::Student(int argc, char **argv, char **colName)
 }
 
 Student::~Student()
-{
+{}
 
+Student::Student(const Student& other)
+        :Node(other)
+        ,name(other.name)
+        ,version(other.version)
+{}
+        
+Student& Student::operator= (const Student& other)
+{
+    if(this != &other) {
+        Node::operator=(other);
+        name = other.name;
+        version = other.version;
+    }
+
+    return *this;
+}
+
+Student::Student(Student&& other)
+        :Node(other)
+        ,name(other.name)
+        ,version(other.version)
+{}
+       
+Student& Student::operator= (Student&& other)
+{
+    if(this != &other) {
+        Node::operator=(std::move(other));
+        name = other.name;
+        version = other.version;
+    }
+
+    return *this;
 }
