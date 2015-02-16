@@ -85,8 +85,7 @@ value passed.
 Visual Interface
 ----------------
 
-The following allows one to have a visual representation of total infections in particular.
+The -v flag allows one to have a visual representation of total infections in particular.
 When selecting a node we generate a total infection from the selected node.
 
 ![Screenshot](https://github.com/jrpotter/Infection/blob/master/assets/screenshot.png)
-
