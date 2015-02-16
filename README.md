@@ -81,12 +81,41 @@ as possible from the given id, and this grouping is displayed. If the -l flag is
 the program tries to find the student id that infects a number of students closest to the
 value passed.
 
+A typical usage example would be the following:
+
+```
+./infection -f tests/test.sql -l 7
+./infection -v
+```
+
+which will output 5 (i.e. the starting node that comes closest to infecting 7 other students)
+and the image included below (the invocation with the -v flag). This call would also generate
+an "infection.db" flag, containing the imported data.
 
 Visual Interface
 ----------------
 
-The following allows one to have a visual representation of total infections in particular.
+The -v flag allows one to have a visual representation of total infections in particular.
 When selecting a node we generate a total infection from the selected node.
 
-![Screenshot](https://raw.githubusercontent.com/jrpotter/Infection/master/assets/screenshot.png)
+![Screenshot](https://github.com/jrpotter/Infection/blob/master/assets/screenshot.png)
 
+
+Miscellaneous
+-------------
+There are other things I'd like to incorporate but decided against as I didn't really have much time left.
+* I would like to work on a more sophisticated SQL schema that perhaps incorporates classes, schools, 
+  counties, etc. so that I would not have to reload a table each time I wanted to run the function,
+  but instead just call the infection tool at the desired level.
+* I would like to incorporate limited infection into the visualization, perhaps allowing the user to
+  just enter a number and see how the search is conducted (as this makes the dynamic programming
+  component more clear).
+* It would be fun to incorporate notions such as "immunity" where certain nodes do not change
+  their version despite a parent node being different; all subsequent nodes would not be infected
+  either in that case
+* Again with the visualization, a dynamic means of generating a graph would be fun but would probably
+  be more time consuming than its worth.
+* Because of the recursive structure of nodes, it would be nice to be able to generalize the node to
+  allow for an arbitrary level; for example, I have a node that represents a student but I should
+  generalize this to also allow representation of a class. Templating the node (and consequently
+  the graph) would probably be smart to do later on.
