@@ -27,6 +27,7 @@
 using namespace std;
 
 #include "infection.hpp"
+#include "window.hpp"
 
 extern "C" {
 #include "sqlite3.h"
@@ -42,11 +43,15 @@ int main(int argc, char** argv) {
     string testFilePath = "";
     string databasePath = DEFAULT_DATABASE_NAME;
 
+    // Allow users to interact with graph
+    bool visual = false;
+
     // Flag to determine whether conducting a total or limited infection
     bool totalInfection = true;
 
     // Specifies either id of student or limit desired
     int input = -1;
+
 
     // Command Line Arguments
     // ==========================================================
@@ -96,13 +101,20 @@ int main(int argc, char** argv) {
                 databasePath = argv[i+1];
             }
 
+        // Allow visuals
+        } else if(strcmp(argv[i], "-v") == 0) {
+            visual = true;
+
         // Display help text. Do not continue anything else.
         } else if(strcmp(argv[i], "-h") == 0) {
 
             cout << "Help documentation: " << endl;
             cout << "-f {file}: Path of file to seed database with (needs to exist)" << endl;
             cout << "-d {database}: Path of database (does not need to exist) to seed" << endl;
-            cout << "-h: Print out this help documentation";
+            cout << "-t {number}: Pass id of student to see total infected" << endl;
+            cout << "-l {number}: Pass target infected to see optimal student" << endl;
+            cout << "-v: Show an interactive visual interface for infections" << endl;
+            cout << "-h: Print out this help documentation" << endl;
             cout << endl << endl;
 
             return 0;
@@ -188,14 +200,19 @@ int main(int argc, char** argv) {
     // in the limited case).
     Graph *connectedRelations = relations->getStrongComponents();
 
-    // Conduct the infection
-    Infection infection(relations, connectedRelations);
+    // Conduct the infection if passing in argument
     if(input != -1) {
+        Infection infection(relations, connectedRelations);
         if(totalInfection) {
             infection.total_infection(static_cast<Student*>(relations->nodes[input]));
         } else {
             infection.limit_infection(input);
         }
+
+    // Allow for an interactive component if desired
+    } else if(visual) {
+        Window window(relations, connectedRelations);
+        window.run();        
     }
 
 

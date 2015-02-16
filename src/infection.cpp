@@ -47,7 +47,7 @@ Student* Infection::limit_infection(int limit)
     }
 
     if(bestFit != nullptr) {
-        cout << bestFit->id << " : " << bestTotal << endl;
+        cout << "Student ID: " << bestFit->id << " infects " << bestTotal << endl;
     }
 
     return static_cast<Student*>(bestFit);
@@ -65,21 +65,26 @@ void Infection::total_infection(Student *user)
     queue<Node*> metaNodes;
     metaNodes.push(metaNetwork->nodes[user->leader]);
 
+    cout << "(";
     while(!metaNodes.empty()) {
 
         Node *meta = metaNodes.front();
-        for(int i = 0; i < meta->subNodes.size(); i++) {
-            Student *student = static_cast<Student*>(meta->subNodes[i]);
-            student->version = user->version;
-            cout << student->id << " ";
-        }
-
         for(eItr itr = meta->edges.begin(); itr != meta->edges.end(); itr++) {
             metaNodes.push(itr->second);
         }
 
+        for(int i = 0; i < meta->subNodes.size(); i++) {
+            Student *student = static_cast<Student*>(meta->subNodes[i]);
+            student->version = user->version;
+            cout << student->id;
+            if(metaNodes.size() != 1 || i != meta->subNodes.size() - 1) {
+                cout << ", ";
+            }
+        }
+
         metaNodes.pop();
     }
+    cout << ")" << endl;
 }
 
 
