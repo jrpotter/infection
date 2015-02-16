@@ -17,14 +17,6 @@ class Node
     public:
         Node();
         Node(int id);
-        ~Node();
-        Node(const Node& other);
-        Node& operator= (const Node& other);
-        Node(Node&& other);
-        Node& operator= (Node&& other);
-
-        // Build up adjacency list
-        void addEdge(int id, Node *node);
 
         // The unique id of the node in the graph
         int id;

@@ -11,6 +11,7 @@
 #define GRAPH_HPP
 
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -56,7 +57,7 @@ class Graph
         // The Tarjan Strongly Connected Components algorithm uses a stack to group nodes
         // of a connected equivalence class together. This is the recursive means of maintaining
         // the desired meta nodes
-        vector<Node*> tarjanDFS(Node *current, IndexStack<Node*> *indexed, Graph *metaGraph);
+        void tarjanDFS(Node *current, Graph *metaGraph, IndexStack<Node*> *indexed);
 };
 
 #endif

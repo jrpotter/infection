@@ -70,7 +70,9 @@ void Infection::total_infection(Student *user)
 
         Node *meta = metaNodes.front();
         for(eItr itr = meta->edges.begin(); itr != meta->edges.end(); itr++) {
-            metaNodes.push(itr->second);
+            if(itr->second != nullptr) {
+                metaNodes.push(itr->second);
+            }
         }
 
         for(int i = 0; i < meta->subNodes.size(); i++) {

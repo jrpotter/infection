@@ -32,9 +32,8 @@ Window::~Window()
 
 double* Window::getGridFactors(sf::Vector2u dist)
 {
-    double *factors = new double[4]{0, 0, 0, 0};
-
     int n = network->nodes.size();
+    double *factors = new double[4]{0, 0, 0, 0};
 
     // When distributing the nodes, we can imagine a gridlike
     // overlay on the window, in which all intersections are
@@ -43,13 +42,12 @@ double* Window::getGridFactors(sf::Vector2u dist)
     // factorization of n, and an additional row is created
     // to accomodate them
     factors[OFFSET] = n - (dist.x * dist.y);
-    int offset = n - (dist.x * dist.y);
 
     // Here we determine the spacing of the points, making sure
     // to pad the distribution on both sides to center all points
     // as well as adding an additional row if necessary
     factors[DELTA_X] = window->getSize().x / (dist.x + 1);
-    factors[DELTA_Y] = window->getSize().y / (dist.y + 1 + (offset > 0 ? 1 : 0));
+    factors[DELTA_Y] = window->getSize().y / (dist.y + 1 + (factors[OFFSET] > 0 ? 1 : 0));
     factors[RADIUS] = 0.25f * min(factors[DELTA_X], factors[DELTA_Y]);
 
     return factors;
@@ -63,7 +61,7 @@ sf::Vector2u Window::getDistribution()
     // We perform simple trial division until we obtain a nonprime
     // number, to which we can then try and distribute evenly
     bool isPrime = true;
-    for(; isPrime; n--) {
+    for(; !isPrime; n--) {
         if(n <= 3) {
             isPrime = n > 1;
         } else if(n % 2 == 0 || n % 3 == 0) {
@@ -82,8 +80,8 @@ sf::Vector2u Window::getDistribution()
     // We continue working downward until we have some
     // factor that can break up the given n fairly evenly.
     // We start from the sqrt to try and be as even as possible
-    int hcCount = 0;
-    for(int i = sqrt(n); i >= 1; i--) {
+    int hcCount = 1;
+    for(int i = sqrt(n); i > 1; i--) {
         if(n % i == 0) {
             hcCount = i;
             break;
@@ -108,8 +106,8 @@ vector<Point*> Window::generatePoints(sf::Vector2u dist)
         // Determine Position
         int row = i / dist.x;
         int col = i % dist.x;
-        int x = (row + 1) * factors[DELTA_Y];
-        int y = (col + 1) * factors[DELTA_X];
+        int x = (col + 1) * factors[DELTA_X];
+        int y = (row + 1) * factors[DELTA_Y];
 
         // We save the following information to
         // later reverse the calculation and determine
@@ -133,9 +131,9 @@ vector<Point*> Window::generatePoints(sf::Vector2u dist)
         for(; nItr != current->edges.end(); nItr++) {
             int x = nItr->second->index;
             int y = nItr->second->low_index;
-            int row = (x / factors[DELTA_Y]) - 1;
-            int col = (y / factors[DELTA_X]) - 1;
-            points[i]->addPoint(points[(row * dist.x)+col]);
+            int col = (x / factors[DELTA_X]) - 1;
+            int row = (y / factors[DELTA_Y]) - 1;
+            points[i]->addPoint(points[(row * dist.x) + col]);
         }
     }
 
@@ -177,10 +175,10 @@ void Window::run()
         sf::Vector2i pos = sf::Mouse::getPosition(*window);
 
         // Find closest grid intersection (points where circles are placed)
-        int frontX = pos.x - (pos.x % (int) factors[DELTA_Y]);
-        int frontY = pos.y - (pos.y % (int) factors[DELTA_X]);
-        int backX = frontX + (int) factors[DELTA_Y];
-        int backY = frontY + (int) factors[DELTA_X];
+        int frontX = pos.x - (pos.x % (int) factors[DELTA_X]);
+        int frontY = pos.y - (pos.y % (int) factors[DELTA_Y]);
+        int backX = frontX + (int) factors[DELTA_X];
+        int backY = frontY + (int) factors[DELTA_Y];
 
         // Place actual coordinate positions
         int x_coor = (abs(pos.x - backX) < abs(pos.x - frontX)) ? backX : frontX;
@@ -189,8 +187,8 @@ void Window::run()
         // Get current point if mouse is over it
         int offset = -1;
         if(sqrt(pow(pos.x - x_coor, 2) + pow(pos.y - y_coor, 2)) <= factors[RADIUS]) {
-            int row = (x_coor / factors[DELTA_Y]) - 1;
-            int col = (y_coor / factors[DELTA_X]) - 1;
+            int col = (x_coor / factors[DELTA_X]) - 1;
+            int row = (y_coor / factors[DELTA_Y]) - 1;
             offset = (row * dist.x) + col;
         }
 

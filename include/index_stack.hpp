@@ -39,6 +39,7 @@ class IndexStack
         bool find(T obj);
 
         // Stack Operations
+        T& top();
         T pop();
         int push(T obj);
 
@@ -119,6 +120,12 @@ int IndexStack<T>::push(T obj)
     collection.insert(obj);
     ordering.push(obj);
     return ++index;
+}
+
+template<typename T>
+T& IndexStack<T>::top() 
+{
+    return ordering.top();
 }
 
 template<typename T>
