@@ -28,7 +28,7 @@ Student* Infection::limit_infection(int limit)
     // problem dynamically, building up the node count using the provided
     // index field.
     queue<Node*> nodes = topologicalSort(metaNetwork); 
-    while(!nodes.empty()) {
+    while(!nodes.empty() && bestTotal != limit) {
         Node *front = nodes.front(); 
 
         // Add all indices of the other nodes, and see if closer to the limit
