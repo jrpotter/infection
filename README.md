@@ -1,8 +1,7 @@
 Infection
 =========
 
-Total Infection
----------------
+[VERSION 1.0.0 - 04/27/2014]
  
 When rolling out big new features, we like to enable them slowly, starting with just the KA 
 team, then a handful of users, then some more users, and so on, until we’ve ramped up to 
